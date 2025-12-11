@@ -65,14 +65,33 @@ Google Sheets에서 음식점 데이터를 가져와 Google Maps에 표시하는
    npm run build
    ```
 
-3. **로컬 서버 실행**
+3. **로컬 개발 서버 실행**
+
+   **방법 1: Vercel CLI 사용 (권장 - API 엔드포인트 작동)**
    ```bash
-   # Python 사용 시
-   python -m http.server 8000
+   # Vercel CLI 설치 (처음 한 번만)
+   npm install -g vercel
    
-   # Node.js 사용 시
-   npx serve .
+   # 개발 서버 실행
+   npm run dev
+   # 또는
+   vercel dev
    ```
+   이렇게 하면 `http://localhost:3000`에서 실행되며 `/api/sheets` 엔드포인트가 정상 작동합니다.
+
+   **방법 2: 간단한 HTTP 서버 (정적 파일만)**
+   ```bash
+   npm run serve
+   # 또는
+   python3 -m http.server 3000
+   # 또는
+   npx serve . -p 3000
+   ```
+   ⚠️ 주의: 이 방법은 `/api/sheets` 엔드포인트가 작동하지 않습니다. 
+   데이터 불러오기 기능을 테스트하려면 방법 1을 사용하세요.
+
+   **중요**: `file://` 프로토콜로 직접 HTML 파일을 열면 API가 작동하지 않습니다.
+   반드시 HTTP 서버를 통해 접근해야 합니다.
 
 ## 설정 방법
 

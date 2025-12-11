@@ -1,10 +1,11 @@
 {
   "name": "jeju-restaurant-map",
   "version": "1.0.0",
-  "description": "제주 공항근처 맛집 지도",
+  "description": "제주 맛집 지도",
   "scripts": {
     "build": "node build.js",
-    "prebuild": "node build.js"
+    "prebuild": "node build.js",
+    "serve": "python3 -m http.server 3000 || python -m http.server 3000 || npx serve . -p 3000"
   },
   "keywords": [
     "google-maps",

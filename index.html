@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>제주 공항근처 맛집 지도</title>
+    <title>제주 맛집 지도</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>제주 공항근처 맛집 지도</h1>
-            <p>Google Sheets에서 음식점 정보를 불러와 지도에 표시합니다</p>
+            <h1>제주 맛집 지도</h1>
         </header>
         
         <div class="controls">
@@ -24,9 +23,15 @@
             </div>
         </div>
         
-        <div id="map" class="map-container"></div>
+        <div id="map" class="map-container">
+            <button id="myLocationBtn" class="my-location-btn" title="내 현재 위치로 이동">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 8C9.79 8 8 9.79 8 12C8 14.21 9.79 16 12 16C14.21 16 16 14.21 16 12C16 9.79 14.21 8 12 8ZM20.94 11C20.48 6.83 17.17 3.52 13 3.06V1H11V3.06C6.83 3.52 3.52 6.83 3.06 11H1V13H3.06C3.52 17.17 6.83 20.48 11 20.94V23H13V20.94C17.17 20.48 20.48 17.17 20.94 13H23V11H20.94ZM12 19C8.13 19 5 15.87 5 12C5 8.13 8.13 5 12 5C15.87 5 19 8.13 19 12C19 15.87 15.87 19 12 19Z" fill="currentColor"/>
+                </svg>
+            </button>
+        </div>
         
-        <div id="infoPanel" class="info-panel">
+        <div id="infoPanel" class="info-panel collapsed">
             <h3>음식점 정보</h3>
             <div id="restaurantInfo"></div>
         </div>
