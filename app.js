@@ -872,12 +872,7 @@ function clearMarkers() {
 }
 
 // 페이지 로드 시 지도 초기화
-window.addEventListener('DOMContentLoaded', () => {
-    // Google Maps API 키 확인
-    const script = document.querySelector('script[src*="maps.googleapis.com"]');
-    if (script && script.src.includes('YOUR_API_KEY')) {
-        alert('Google Maps API 키를 설정해주세요!\n\nindex.html 파일에서 YOUR_API_KEY를 실제 API 키로 변경하세요.');
-    }
-    initMap();
-});
+// 주의: initMap은 Google Maps API가 로드된 후 callback으로 호출됩니다
+// (index.html에서 Google Maps API 로드 시 callback=initGoogleMaps 설정)
+// 따라서 여기서는 직접 호출하지 않습니다.
 
