@@ -801,21 +801,86 @@ function updateLegend(quartiles, counts = null) {
     }
 }
 
+// 클립보드에 텍스트 복사 함수
+async function copyToClipboard(text, label) {
+    try {
+        await navigator.clipboard.writeText(text);
+        // 간단한 피드백 (선택사항)
+        const toast = document.createElement('div');
+        toast.textContent = `${label} 복사됨: ${text}`;
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 10000;
+            font-size: 14px;
+            animation: slideIn 0.3s ease-out;
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => toast.remove(), 300);
+        }, 2000);
+    } catch (err) {
+        console.error('복사 실패:', err);
+        alert(`${label} 복사 실패: ${text}`);
+    }
+}
+
+// HTML 이스케이프 처리 함수
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// JavaScript 문자열 이스케이프 처리 (onclick 속성용)
+function escapeJsString(text) {
+    if (!text) return '';
+    return text
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/"/g, '\\"')
+        .replace(/\n/g, '\\n')
+        .replace(/\r/g, '\\r');
+}
+
 // 정보창 내용 생성
 function createInfoWindowContent(restaurant) {
     const revenue = formatRevenue(restaurant.annualRevenue);
     const area = restaurant.area ? `${restaurant.area}㎡` : '정보 없음';
+    const restaurantName = restaurant.name || '정보 없음';
+    const restaurantAddress = restaurant.address || '정보 없음';
+    
+    // 복사용 데이터 (이스케이프 처리)
+    const nameForCopy = escapeJsString(restaurantName);
+    const addressForCopy = escapeJsString(restaurantAddress);
     
     return `
-        <div style="padding: 10px; min-width: 250px;">
-            <h3 style="margin: 0 0 10px 0; color: #667eea; font-size: 1.2em;">${restaurant.name}</h3>
+        <div style="padding: 10px; min-width: 250px;" id="info-window-${restaurant.businessNumber || Math.random()}">
+            <h3 style="margin: 0 0 10px 0; color: #667eea; font-size: 1.2em; cursor: pointer; user-select: none;" 
+                onclick="window.copyToClipboard('${nameForCopy}', '이름')"
+                onmouseover="this.style.textDecoration='underline'; this.style.color='#5568d3';"
+                onmouseout="this.style.textDecoration='none'; this.style.color='#667eea';"
+                title="클릭하여 이름 복사">${escapeHtml(restaurantName)}</h3>
             <div style="margin-bottom: 8px;">
                 <span style="background: #e3e8ff; color: #667eea; padding: 4px 10px; border-radius: 12px; font-size: 0.85em;">
-                    ${restaurant.category}
+                    ${escapeHtml(restaurant.category)}
                 </span>
             </div>
             <div style="margin: 5px 0; font-size: 0.9em;">
-                <strong>주소:</strong> ${restaurant.address || '정보 없음'}<br>
+                <strong>주소:</strong> 
+                <span style="cursor: pointer; user-select: none; color: #667eea; text-decoration: underline;"
+                      onclick="window.copyToClipboard('${addressForCopy}', '주소')"
+                      onmouseover="this.style.color='#5568d3';"
+                      onmouseout="this.style.color='#667eea';"
+                      title="클릭하여 주소 복사">${escapeHtml(restaurantAddress)}</span><br>
                 <strong>연 매출:</strong> ${revenue}<br>
                 <strong>면적:</strong> ${area}<br>
                 <strong>운영기간:</strong> ${restaurant.operatingPeriod || '정보 없음'}<br>
@@ -838,12 +903,17 @@ function displayRestaurantInfo(restaurants) {
     restaurantInfo.innerHTML = restaurants.map((restaurant, index) => {
         const revenue = formatRevenue(restaurant.annualRevenue);
         const area = restaurant.area ? `${restaurant.area}㎡` : '정보 없음';
+        const restaurantName = restaurant.name || '정보 없음';
+        const restaurantAddress = restaurant.address || '정보 없음';
         
         return `
             <div class="restaurant-card" data-index="${index}">
-                <h4>${restaurant.name}</h4>
+                <h4 class="copyable-name" data-text="${restaurantName.replace(/"/g, '&quot;')}" title="클릭하여 이름 복사">${restaurantName}</h4>
                 <span class="category">${restaurant.category}</span>
-                <div class="detail"><strong>주소:</strong> ${restaurant.address || '정보 없음'}</div>
+                <div class="detail">
+                    <strong>주소:</strong> 
+                    <span class="copyable-address" data-text="${restaurantAddress.replace(/"/g, '&quot;')}" title="클릭하여 주소 복사">${restaurantAddress}</span>
+                </div>
                 <div class="detail"><strong>연 매출:</strong> ${revenue}</div>
                 <div class="detail"><strong>면적:</strong> ${area}</div>
                 <div class="detail"><strong>운영기간:</strong> ${restaurant.operatingPeriod || '정보 없음'}</div>
@@ -852,9 +922,34 @@ function displayRestaurantInfo(restaurants) {
         `;
     }).join('');
     
-    // 카드 클릭 시 해당 마커의 정보창 열기
+    // 카드 클릭 시 해당 마커의 정보창 열기 (이름/주소 클릭 시에는 복사만)
     restaurantInfo.querySelectorAll('.restaurant-card').forEach((card, index) => {
-        card.addEventListener('click', () => {
+        // 이름 클릭 시 복사
+        const nameElement = card.querySelector('.copyable-name');
+        if (nameElement) {
+            nameElement.addEventListener('click', (e) => {
+                e.stopPropagation(); // 카드 클릭 이벤트 방지
+                const text = nameElement.getAttribute('data-text');
+                copyToClipboard(text, '이름');
+            });
+        }
+        
+        // 주소 클릭 시 복사
+        const addressElement = card.querySelector('.copyable-address');
+        if (addressElement) {
+            addressElement.addEventListener('click', (e) => {
+                e.stopPropagation(); // 카드 클릭 이벤트 방지
+                const text = addressElement.getAttribute('data-text');
+                copyToClipboard(text, '주소');
+            });
+        }
+        
+        // 카드 클릭 시 해당 마커의 정보창 열기 (이름/주소가 아닌 다른 부분 클릭 시)
+        card.addEventListener('click', (e) => {
+            // 이름이나 주소를 클릭한 경우는 제외
+            if (e.target.classList.contains('copyable-name') || e.target.classList.contains('copyable-address')) {
+                return;
+            }
             if (markers[index]) {
                 infoWindows.forEach(iw => iw.close());
                 infoWindows[index].open(map, markers[index]);
@@ -872,6 +967,9 @@ function clearMarkers() {
     markers = [];
     infoWindows = [];
 }
+
+// 전역 함수로 복사 함수 노출 (InfoWindow에서 사용하기 위해)
+window.copyToClipboard = copyToClipboard;
 
 // 페이지 로드 시 지도 초기화
 // 주의: initMap은 Google Maps API가 로드된 후 callback으로 호출됩니다

@@ -245,6 +245,29 @@ header p {
     font-size: 1.2em;
 }
 
+.restaurant-card .copyable-name {
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s, text-decoration 0.2s;
+}
+
+.restaurant-card .copyable-name:hover {
+    color: #5568d3;
+    text-decoration: underline;
+}
+
+.restaurant-card .copyable-address {
+    cursor: pointer;
+    user-select: none;
+    color: #667eea;
+    text-decoration: underline;
+    transition: color 0.2s;
+}
+
+.restaurant-card .copyable-address:hover {
+    color: #5568d3;
+}
+
 .restaurant-card .category {
     display: inline-block;
     background: #e3e8ff;
@@ -270,6 +293,29 @@ header p {
     padding: 20px;
     color: #667eea;
     font-size: 1.1em;
+}
+
+/* 복사 토스트 메시지 애니메이션 */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
 }
 
 .error {
