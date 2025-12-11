@@ -588,20 +588,20 @@ function initMap() {
         });
     }
     
-    // 정보 패널 접기/펼치기 기능 (모바일)
-    if (window.innerWidth <= 768) {
-        const infoPanel = document.getElementById('infoPanel');
-        const infoPanelTitle = infoPanel?.querySelector('h3');
+    // 정보 패널 접기/펼치기 기능 (데스크톱 및 모바일)
+    const infoPanel = document.getElementById('infoPanel');
+    const infoPanelTitle = infoPanel?.querySelector('h3');
+    
+    if (infoPanelTitle) {
+        // 클릭 이벤트 (데스크톱 및 모바일)
+        infoPanelTitle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            infoPanel.classList.toggle('collapsed');
+        });
         
-        if (infoPanelTitle) {
-            // 클릭 이벤트
-            infoPanelTitle.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                infoPanel.classList.toggle('collapsed');
-            });
-            
-            // 터치 이벤트 (모바일)
+        // 터치 이벤트 (모바일)
+        if (window.innerWidth <= 768) {
             infoPanelTitle.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -613,21 +613,21 @@ function initMap() {
                 infoPanel.classList.toggle('collapsed');
             }, { passive: false });
         }
+    }
+    
+    // 모바일에서 정보 패널 전체에서 지도 제스처 차단
+    if (window.innerWidth <= 768 && infoPanel) {
+        infoPanel.addEventListener('touchstart', (e) => {
+            e.stopPropagation();
+        }, { passive: true });
         
-        // 정보 패널 전체에서 지도 제스처 차단
-        if (infoPanel) {
-            infoPanel.addEventListener('touchstart', (e) => {
-                e.stopPropagation();
-            }, { passive: true });
-            
-            infoPanel.addEventListener('touchmove', (e) => {
-                e.stopPropagation();
-            }, { passive: true });
-            
-            infoPanel.addEventListener('touchend', (e) => {
-                e.stopPropagation();
-            }, { passive: true });
-        }
+        infoPanel.addEventListener('touchmove', (e) => {
+            e.stopPropagation();
+        }, { passive: true });
+        
+        infoPanel.addEventListener('touchend', (e) => {
+            e.stopPropagation();
+        }, { passive: true });
     }
 }
 

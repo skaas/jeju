@@ -346,11 +346,22 @@ header p {
 /* 데스크톱 정보 패널 */
 @media (min-width: 769px) {
     .info-panel {
-        padding: 20px 30px;
+        padding: 0;
         background: #f8f9fa;
         border-top: 1px solid #e0e0e0;
         max-height: 300px;
-        overflow-y: auto;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: max-height 0.3s ease;
+    }
+    
+    .info-panel.collapsed {
+        max-height: 60px; /* 제목만 보이도록 */
+    }
+    
+    .info-panel:not(.collapsed) {
+        max-height: 300px;
     }
 }
 
@@ -392,6 +403,29 @@ header p {
     color: #333;
     margin-bottom: 15px;
     font-size: 1.3em;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* 데스크톱에서 제목 스타일 */
+@media (min-width: 769px) {
+    .info-panel h3 {
+        padding: 20px 30px;
+        margin: 0;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .info-panel h3::after {
+        content: '▼';
+        float: right;
+        font-size: 0.8em;
+        transition: transform 0.3s ease;
+    }
+    
+    .info-panel.collapsed h3::after {
+        transform: rotate(-90deg);
+    }
 }
 
 /* 모바일에서 제목 고정 */
@@ -405,6 +439,8 @@ header p {
         margin: 0;
         z-index: 10;
         border-bottom: 1px solid rgba(224, 224, 224, 0.5);
+        touch-action: manipulation; /* 더블탭 줌 방지 및 터치 반응성 향상 */
+        -webkit-tap-highlight-color: transparent; /* 터치 하이라이트 제거 */
     }
 }
 
@@ -516,6 +552,16 @@ header p {
     border-left: 4px solid #c33;
 }
 
+/* 데스크톱에서 음식점 정보 영역 */
+@media (min-width: 769px) {
+    #restaurantInfo {
+        padding: 20px 30px;
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0;
+    }
+}
+
 @media (max-width: 768px) {
     #restaurantInfo {
         grid-template-columns: 1fr;
@@ -533,14 +579,6 @@ header p {
     /* 범례 제목 숨기기 (지도 가림 방지) */
     .legend-title {
         display: none;
-    }
-    
-    /* 정보 패널 접기 버튼 */
-    .info-panel h3 {
-        cursor: pointer;
-        user-select: none;
-        touch-action: manipulation; /* 더블탭 줌 방지 및 터치 반응성 향상 */
-        -webkit-tap-highlight-color: transparent; /* 터치 하이라이트 제거 */
     }
     
     .info-panel h3::after {
