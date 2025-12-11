@@ -6,25 +6,73 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    padding: 20px;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
 }
 
-.container {
-    max-width: 1400px;
-    margin: 0 auto;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
+/* 데스크톱 레이아웃 (기존 유지) */
+@media (min-width: 769px) {
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+    }
+    
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+    }
 }
 
-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 30px;
-    text-align: center;
+/* 모바일 레이아웃 (전체화면 지도 + 오버레이) */
+@media (max-width: 768px) {
+    body {
+        background: transparent;
+        padding: 0;
+    }
+    
+    .container {
+        position: relative;
+        z-index: 10;
+        max-width: none;
+        margin: 0;
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
+        overflow: visible;
+    }
+}
+
+/* 데스크톱 헤더 */
+@media (min-width: 769px) {
+    header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+    }
+}
+
+/* 모바일 헤더 (오버레이) */
+@media (max-width: 768px) {
+    header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: rgba(102, 126, 234, 0.95);
+        backdrop-filter: blur(10px);
+        color: white;
+        padding: 15px 20px;
+        text-align: center;
+        z-index: 100;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
 }
 
 header h1 {
@@ -38,15 +86,48 @@ header p {
     opacity: 0.9;
 }
 
-.controls {
-    padding: 20px 30px;
-    background: #f8f9fa;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
-    border-bottom: 1px solid #e0e0e0;
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 1.5em;
+        margin-bottom: 5px;
+    }
+    
+    header p {
+        font-size: 0.9em;
+    }
+}
+
+/* 데스크톱 컨트롤 */
+@media (min-width: 769px) {
+    .controls {
+        padding: 20px 30px;
+        background: #f8f9fa;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+}
+
+/* 모바일 컨트롤 (오버레이) */
+@media (max-width: 768px) {
+    .controls {
+        position: absolute;
+        top: 80px; /* 헤더 높이 대략 계산 (1.5em + 0.9em + padding) */
+        left: 0;
+        right: 0;
+        padding: 10px 15px;
+        background: rgba(248, 249, 250, 0.95);
+        backdrop-filter: blur(10px);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        border-bottom: 1px solid rgba(224, 224, 224, 0.5);
+        z-index: 99;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
 }
 
 .legend {
@@ -199,24 +280,131 @@ header p {
     font-weight: 500;
 }
 
-.map-container {
-    width: 100%;
-    height: 600px;
-    position: relative;
+/* 데스크톱 지도 스타일 */
+@media (min-width: 769px) {
+    .map-container {
+        width: 100%;
+        height: 600px;
+        position: relative;
+    }
 }
 
-.info-panel {
-    padding: 20px 30px;
-    background: #f8f9fa;
-    border-top: 1px solid #e0e0e0;
-    max-height: 300px;
-    overflow-y: auto;
+/* 현재 위치 찾기 버튼 */
+.my-location-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    background: white;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    color: #667eea;
+}
+
+.my-location-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.my-location-btn:active {
+    transform: scale(0.95);
+}
+
+.my-location-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 모바일 지도 스타일 (전체화면) */
+@media (max-width: 768px) {
+    .map-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh; /* 동적 뷰포트 높이 지원 */
+        z-index: 1;
+    }
+    
+    .my-location-btn {
+        bottom: 100px; /* 정보 패널 위에 배치 */
+        right: 15px;
+        width: 44px;
+        height: 44px;
+    }
+}
+
+/* 데스크톱 정보 패널 */
+@media (min-width: 769px) {
+    .info-panel {
+        padding: 20px 30px;
+        background: #f8f9fa;
+        border-top: 1px solid #e0e0e0;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+}
+
+/* 모바일 정보 패널 (하단 고정 오버레이) */
+@media (max-width: 768px) {
+    .info-panel {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 0;
+        background: rgba(248, 249, 250, 0.98);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(224, 224, 224, 0.5);
+        max-height: 50vh;
+        max-height: 50dvh;
+        overflow: hidden;
+        z-index: 100;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        border-radius: 20px 20px 0 0;
+        transition: transform 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        /* 기본적으로 접힌 상태 */
+        transform: translateY(calc(100% - 60px)); /* 제목만 보이도록 */
+    }
+    
+    .info-panel:not(.collapsed) {
+        transform: translateY(0); /* 펼쳐진 상태 */
+    }
+    
+    .info-panel.collapsed {
+        transform: translateY(calc(100% - 60px)); /* 제목만 보이도록 */
+    }
 }
 
 .info-panel h3 {
     color: #333;
     margin-bottom: 15px;
     font-size: 1.3em;
+}
+
+/* 모바일에서 제목 고정 */
+@media (max-width: 768px) {
+    .info-panel h3 {
+        position: sticky;
+        top: 0;
+        background: rgba(248, 249, 250, 0.98);
+        backdrop-filter: blur(10px);
+        padding: 15px 20px;
+        margin: 0;
+        z-index: 10;
+        border-bottom: 1px solid rgba(224, 224, 224, 0.5);
+    }
 }
 
 #restaurantInfo {
@@ -328,21 +516,40 @@ header p {
 }
 
 @media (max-width: 768px) {
-    header h1 {
-        font-size: 1.8em;
-    }
-    
-    .controls {
-        flex-direction: column;
-        gap: 15px;
-    }
-    
     #restaurantInfo {
         grid-template-columns: 1fr;
+        padding: 15px 20px;
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0;
     }
     
-    .map-container {
-        height: 400px;
+    /* 음식점 개수 텍스트 숨기기 (지도 가림 방지) */
+    .info {
+        display: none;
+    }
+    
+    /* 범례 제목 숨기기 (지도 가림 방지) */
+    .legend-title {
+        display: none;
+    }
+    
+    /* 정보 패널 접기 버튼 */
+    .info-panel h3 {
+        cursor: pointer;
+        user-select: none;
+    }
+    
+    .info-panel h3::after {
+        content: '▼';
+        position: absolute;
+        right: 20px;
+        font-size: 0.8em;
+        transition: transform 0.3s ease;
+    }
+    
+    .info-panel.collapsed h3::after {
+        transform: rotate(-90deg);
     }
 }
 
