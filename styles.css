@@ -374,6 +374,7 @@ header p {
         transition: transform 0.3s ease;
         display: flex;
         flex-direction: column;
+        touch-action: pan-y; /* 세로 스크롤만 허용, 지도 제스처 차단 */
         /* 기본적으로 접힌 상태 */
         transform: translateY(calc(100% - 60px)); /* 제목만 보이도록 */
     }
@@ -538,6 +539,8 @@ header p {
     .info-panel h3 {
         cursor: pointer;
         user-select: none;
+        touch-action: manipulation; /* 더블탭 줌 방지 및 터치 반응성 향상 */
+        -webkit-tap-highlight-color: transparent; /* 터치 하이라이트 제거 */
     }
     
     .info-panel h3::after {

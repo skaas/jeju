@@ -52,8 +52,8 @@ async function loadRestaurantData() {
         // 지도에 마커 추가
         displayRestaurants(restaurants);
         
-        // 정보 패널 업데이트
-        displayRestaurantInfo(restaurants);
+        // 초기 정보 패널 업데이트는 updateMarkersByVisibleBounds()에서 처리
+        // (현재 보이는 음식점만 표시)
         
         restaurantCount.textContent = `${restaurants.length}개의 음식점`;
         
@@ -405,6 +405,69 @@ function isInJejuBounds(lat, lng) {
     return lat >= 33.1 && lat <= 33.6 && lng >= 126.1 && lng <= 126.9;
 }
 
+// 현재 위치 찾기 함수
+function findMyLocation() {
+    const btn = document.getElementById('myLocationBtn');
+    if (!btn) return;
+    
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    
+    if (!navigator.geolocation) {
+        alert('브라우저가 위치 정보를 지원하지 않습니다.');
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        return;
+    }
+    
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const userLat = position.coords.latitude;
+            const userLng = position.coords.longitude;
+            
+            // 제주도 범위 내에 있는지 확인
+            if (isInJejuBounds(userLat, userLng)) {
+                // 제주도 내에 있으면 사용자 위치로 이동
+                map.setCenter({ lat: userLat, lng: userLng });
+                map.setZoom(16);
+                console.log('현재 위치로 이동:', userLat, userLng);
+            } else {
+                // 제주도 밖에 있으면 제주 공항으로 이동
+                const jejuAirport = { lat: 33.5113, lng: 126.4930 };
+                map.setCenter(jejuAirport);
+                map.setZoom(14);
+                alert('제주도 범위 밖입니다. 제주 공항으로 이동합니다.');
+            }
+            
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        },
+        (error) => {
+            console.error('위치 정보를 가져올 수 없습니다:', error);
+            let errorMessage = '위치 정보를 가져올 수 없습니다.';
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    errorMessage = '위치 권한이 거부되었습니다. 브라우저 설정에서 위치 권한을 허용해주세요.';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    errorMessage = '위치 정보를 사용할 수 없습니다.';
+                    break;
+                case error.TIMEOUT:
+                    errorMessage = '위치 정보 요청 시간이 초과되었습니다.';
+                    break;
+            }
+            alert(errorMessage);
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        }
+    );
+}
+
 // 사용자 위치 가져오기 및 지도 초기화
 function initMap() {
     // 제주 공항 좌표 (기본값)
@@ -465,6 +528,12 @@ function initMap() {
     // 데이터 불러오기 버튼 이벤트
     document.getElementById('loadDataBtn').addEventListener('click', loadRestaurantData);
     
+    // 현재 위치 찾기 버튼 이벤트
+    const myLocationBtn = document.getElementById('myLocationBtn');
+    if (myLocationBtn) {
+        myLocationBtn.addEventListener('click', findMyLocation);
+    }
+    
     // 지도 이동/줌 변경 시 4분위 업데이트
     let updateTimeout;
     map.addListener('bounds_changed', () => {
@@ -479,6 +548,87 @@ function initMap() {
         // 지도가 완전히 멈췄을 때 업데이트
         updateMarkersByVisibleBounds();
     });
+    
+    // 모바일에서 지도 리사이즈 처리
+    if (window.innerWidth <= 768) {
+        // 초기 리사이즈
+        setTimeout(() => {
+            if (map) {
+                google.maps.event.trigger(map, 'resize');
+            }
+        }, 100);
+        
+        // 브라우저 주소창 높이 변화 대응
+        let lastHeight = window.innerHeight;
+        window.addEventListener('resize', () => {
+            const currentHeight = window.innerHeight;
+            if (Math.abs(currentHeight - lastHeight) > 50) {
+                // 주소창 표시/숨김으로 인한 높이 변화
+                setTimeout(() => {
+                    if (map) {
+                        google.maps.event.trigger(map, 'resize');
+                    }
+                }, 100);
+                lastHeight = currentHeight;
+            }
+        });
+        
+        // 스크롤 시 주소창 숨김 대응
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    if (map) {
+                        google.maps.event.trigger(map, 'resize');
+                    }
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        });
+    }
+    
+    // 정보 패널 접기/펼치기 기능 (모바일)
+    if (window.innerWidth <= 768) {
+        const infoPanel = document.getElementById('infoPanel');
+        const infoPanelTitle = infoPanel?.querySelector('h3');
+        
+        if (infoPanelTitle) {
+            // 클릭 이벤트
+            infoPanelTitle.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                infoPanel.classList.toggle('collapsed');
+            });
+            
+            // 터치 이벤트 (모바일)
+            infoPanelTitle.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            }, { passive: false });
+            
+            infoPanelTitle.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                infoPanel.classList.toggle('collapsed');
+            }, { passive: false });
+        }
+        
+        // 정보 패널 전체에서 지도 제스처 차단
+        if (infoPanel) {
+            infoPanel.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+            }, { passive: true });
+            
+            infoPanel.addEventListener('touchmove', (e) => {
+                e.stopPropagation();
+            }, { passive: true });
+            
+            infoPanel.addEventListener('touchend', (e) => {
+                e.stopPropagation();
+            }, { passive: true });
+        }
+    }
 }
 
 // 음식점들을 지도에 표시 (초기 로드)
@@ -549,13 +699,30 @@ function updateMarkersByVisibleBounds() {
         return bounds.contains(position);
     });
     
+    // 보이는 음식점 데이터 추출 (매출 데이터가 없는 것도 포함)
+    const visibleRestaurants = visibleMarkers
+        .map(marker => marker.restaurant)
+        .filter(restaurant => restaurant); // null 제거
+    
+    // 보이는 음식점이 없으면 정보 패널 업데이트 후 종료
+    if (visibleRestaurants.length === 0) {
+        const restaurantInfo = document.getElementById('restaurantInfo');
+        if (restaurantInfo) {
+            restaurantInfo.innerHTML = '<div class="loading">현재 보이는 영역에 음식점이 없습니다.</div>';
+        }
+        return;
+    }
+    
     // 보이는 마커들의 매출 데이터 추출
     const visibleRevenues = visibleMarkers
         .map(marker => marker.restaurant?.annualRevenue)
         .filter(r => r && parseFloat(r) > 0);
     
+    // 매출 데이터가 있는 음식점이 없어도 정보 패널은 업데이트
     if (visibleRevenues.length === 0) {
         console.log('보이는 영역에 매출 데이터가 있는 음식점이 없습니다.');
+        // 매출 데이터가 없어도 음식점 목록은 표시 (매출 내림차순 정렬)
+        displayRestaurantInfo(visibleRestaurants);
         return;
     }
     
@@ -644,6 +811,10 @@ function updateMarkersByVisibleBounds() {
         const newIcon = createRevenueMarkerIcon(revenue, quartiles);
         marker.setIcon(newIcon);
     });
+    
+    // 보이는 음식점만 정보 패널에 표시 (매출 내림차순)
+    // visibleRestaurants는 이미 위에서 정의됨
+    displayRestaurantInfo(visibleRestaurants);
 }
 
 // 범례 업데이트 함수 (바 형태)
@@ -900,7 +1071,14 @@ function displayRestaurantInfo(restaurants) {
         return;
     }
     
-    restaurantInfo.innerHTML = restaurants.map((restaurant, index) => {
+    // 매출 내림차순 정렬
+    const sortedRestaurants = [...restaurants].sort((a, b) => {
+        const revenueA = parseFloat(a.annualRevenue) || 0;
+        const revenueB = parseFloat(b.annualRevenue) || 0;
+        return revenueB - revenueA; // 내림차순
+    });
+    
+    restaurantInfo.innerHTML = sortedRestaurants.map((restaurant, index) => {
         const revenue = formatRevenue(restaurant.annualRevenue);
         const area = restaurant.area ? `${restaurant.area}㎡` : '정보 없음';
         const restaurantName = restaurant.name || '정보 없음';
@@ -923,7 +1101,17 @@ function displayRestaurantInfo(restaurants) {
     }).join('');
     
     // 카드 클릭 시 해당 마커의 정보창 열기 (이름/주소 클릭 시에는 복사만)
-    restaurantInfo.querySelectorAll('.restaurant-card').forEach((card, index) => {
+    // 정렬된 배열에서 원본 인덱스 찾기
+    restaurantInfo.querySelectorAll('.restaurant-card').forEach((card, sortedIndex) => {
+        const restaurant = sortedRestaurants[sortedIndex];
+        // 전체 음식점 데이터 배열(restaurantsData)에서 해당 음식점의 인덱스 찾기
+        const originalIndex = restaurantsData.findIndex(r => 
+            r.name === restaurant.name && 
+            r.address === restaurant.address &&
+            Math.abs(r.latitude - restaurant.latitude) < 0.0001 &&
+            Math.abs(r.longitude - restaurant.longitude) < 0.0001
+        );
+        
         // 이름 클릭 시 복사
         const nameElement = card.querySelector('.copyable-name');
         if (nameElement) {
@@ -950,11 +1138,13 @@ function displayRestaurantInfo(restaurants) {
             if (e.target.classList.contains('copyable-name') || e.target.classList.contains('copyable-address')) {
                 return;
             }
-            if (markers[index]) {
+            if (originalIndex >= 0 && originalIndex < markers.length && markers[originalIndex]) {
                 infoWindows.forEach(iw => iw.close());
-                infoWindows[index].open(map, markers[index]);
-                map.setCenter(markers[index].getPosition());
+                infoWindows[originalIndex].open(map, markers[originalIndex]);
+                map.setCenter(markers[originalIndex].getPosition());
                 map.setZoom(16);
+            } else {
+                console.warn('마커를 찾을 수 없습니다:', originalIndex, restaurant.name);
             }
         });
     });
