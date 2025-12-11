@@ -513,6 +513,38 @@ header p {
     color: #333;
 }
 
+.search-btn {
+    margin-top: 12px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #03C75A 0%, #02B350 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.search-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(3, 199, 90, 0.3);
+}
+
+.search-btn:active {
+    transform: translateY(0);
+}
+
+.search-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(3, 199, 90, 0.2);
+}
+
 .loading {
     text-align: center;
     padding: 20px;

@@ -1058,6 +1058,11 @@ function createInfoWindowContent(restaurant) {
                 <strong>개업일:</strong> ${restaurant.openDate || '정보 없음'}<br>
                 <strong>프랜차이즈:</strong> ${restaurant.franchise || '정보 없음'}
             </div>
+            <button onclick="window.searchOnNaver('${nameForCopy}', '${addressForCopy}');" 
+                    style="margin-top: 10px; padding: 8px 16px; background: linear-gradient(135deg, #03C75A 0%, #02B350 100%); color: white; border: none; border-radius: 6px; font-size: 0.9em; font-weight: 600; cursor: pointer; width: 100%; transition: transform 0.2s, box-shadow 0.2s;"
+                    onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(3, 199, 90, 0.3)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';"
+                    title="네이버에서 검색">🔍 검색하기</button>
         </div>
     `;
 }
@@ -1096,6 +1101,7 @@ function displayRestaurantInfo(restaurants) {
                 <div class="detail"><strong>면적:</strong> ${area}</div>
                 <div class="detail"><strong>운영기간:</strong> ${restaurant.operatingPeriod || '정보 없음'}</div>
                 <div class="detail"><strong>개업일:</strong> ${restaurant.openDate || '정보 없음'}</div>
+                <button class="search-btn" data-name="${restaurantName.replace(/"/g, '&quot;')}" data-address="${restaurantAddress.replace(/"/g, '&quot;')}" title="네이버에서 검색">🔍 검색하기</button>
             </div>
         `;
     }).join('');
@@ -1132,10 +1138,23 @@ function displayRestaurantInfo(restaurants) {
             });
         }
         
-        // 카드 클릭 시 해당 마커의 정보창 열기 (이름/주소가 아닌 다른 부분 클릭 시)
+        // 검색 버튼 클릭 시 네이버 검색
+        const searchBtn = card.querySelector('.search-btn');
+        if (searchBtn) {
+            searchBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // 카드 클릭 이벤트 방지
+                const name = searchBtn.getAttribute('data-name');
+                const address = searchBtn.getAttribute('data-address');
+                searchOnNaver(name, address);
+            });
+        }
+        
+        // 카드 클릭 시 해당 마커의 정보창 열기 (이름/주소/검색 버튼이 아닌 다른 부분 클릭 시)
         card.addEventListener('click', (e) => {
-            // 이름이나 주소를 클릭한 경우는 제외
-            if (e.target.classList.contains('copyable-name') || e.target.classList.contains('copyable-address')) {
+            // 이름, 주소, 검색 버튼을 클릭한 경우는 제외
+            if (e.target.classList.contains('copyable-name') || 
+                e.target.classList.contains('copyable-address') || 
+                e.target.classList.contains('search-btn')) {
                 return;
             }
             if (originalIndex >= 0 && originalIndex < markers.length && markers[originalIndex]) {
@@ -1158,8 +1177,28 @@ function clearMarkers() {
     infoWindows = [];
 }
 
-// 전역 함수로 복사 함수 노출 (InfoWindow에서 사용하기 위해)
+// 네이버 검색 함수
+function searchOnNaver(name, address) {
+    // 주소와 업소명을 조합하여 검색어 생성
+    const searchQuery = address && name ? `${address} ${name}` : (name || address || '');
+    if (!searchQuery) {
+        alert('검색할 정보가 없습니다.');
+        return;
+    }
+    
+    // URL 인코딩
+    const encodedQuery = encodeURIComponent(searchQuery);
+    
+    // 네이버 검색 URL 생성
+    const naverSearchUrl = `https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=0&ie=utf8&query=${encodedQuery}`;
+    
+    // 새 창에서 열기
+    window.open(naverSearchUrl, '_blank');
+}
+
+// 전역 함수로 복사 함수 및 검색 함수 노출 (InfoWindow에서 사용하기 위해)
 window.copyToClipboard = copyToClipboard;
+window.searchOnNaver = searchOnNaver;
 
 // 페이지 로드 시 지도 초기화
 // 주의: initMap은 Google Maps API가 로드된 후 callback으로 호출됩니다
