@@ -416,6 +416,8 @@ function initMap() {
         mapTypeControl: true,
         streetViewControl: true,
         fullscreenControl: true,
+        gestureHandling: 'greedy', // 한 손가락으로 지도 이동 가능 (모바일 편의성 향상)
+        disableDoubleClickZoom: false, // 더블클릭 줌 활성화
         styles: [
             {
                 featureType: 'poi',
